@@ -1,10 +1,15 @@
 import os
 os.environ['TF_CPP_MIN_LOG_LEVEL'] = '2'
-
+import ssl
 import tensorflow as tf
 from tensorflow import keras
 from keras import layers
+
+# Отключение проверки SSL (только для разработки)
+ssl._create_default_https_context = ssl._create_unverified_context
+
 from keras.datasets import cifar10
+from keras.preprocessing import image
 import matplotlib.pyplot as plt
 from PIL import Image #Для отрисовки изображений
 import numpy as np
@@ -30,7 +35,7 @@ for i in range(10): #Проходим по классам от 0 до 9
     index = random.choice(label_indexes) #Случайным образом выбираем из списка индекс
     img = x_train[index] #Выбираем из x_train нужное изображение
     axs[i].imshow(Image.fromarray(img)) #Отображаем изображение i-ым графиков
-plt.show() #Показываем изображения
+# plt.show() #Показываем изображения
 
 x_train = x_train / 255
 x_test = x_test / 255
@@ -87,6 +92,17 @@ plt.ylabel('Доля верных ответов')
 plt.legend()
 plt.show()
 
+# График потерь отдельно
+plt.plot(history.history['loss'],
+         label='Потери на обучающем наборе')
+plt.plot(history.history['val_loss'],
+         label='Потери на проверочном наборе')
+plt.xlabel('Эпоха обучения')
+plt.ylabel('Потери')
+plt.title('График потерь модели')
+plt.legend()
+plt.show()
+
 print(model.evaluate(x_test, y_test))
 
 prediction = model.predict(x_test)
@@ -101,3 +117,29 @@ print("Выход сети: ", prediction[n])
 print("Распознанный образ: ", np.argmax(prediction[n]))
 print("Верный ответ: ", y_test[n])
 print("Распознанный образ на картинке: ", classes[np.argmax(prediction[n])])
+
+xTestReal5 = []
+yTestReal5 = []
+
+for i in range(5):
+    img_path = f"./4_2/images/{str(i)}.jpg"
+    xTestReal5.append(np.asarray(image.load_img(img_path, color_mode='rgb', target_size=(32,32))))
+    yTestReal5.append(i)
+
+xTestReal5 = np.array(xTestReal5)
+yTestReal5 = np.array(yTestReal5)
+
+fig, axs = plt.subplots(1, 5, figsize=(12,3))
+for i in range(5):
+    axs[i].imshow((xTestReal5[i] * 255).astype(np.uint8))
+    axs[i].set_title(f"Image {i+1}")
+    axs[i].axis('off')
+plt.show()
+
+prediction = model.predict(xTestReal5)
+for i in range(5):
+    print(f"Изображение {i}:")
+    print(f"Распознанный образ: {classes[np.argmax(prediction[i])]}")
+    print(f"Верный ответ: {classes[yTestReal5[i]]}")  # Добавлен индекс [i]
+    print(f"Уверенность: {np.max(prediction[i]):.2f}")
+    print()
