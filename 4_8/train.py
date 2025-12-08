@@ -27,3 +27,13 @@ plt.xlabel('Приоритет')
 plt.ylabel('Количество')
 plt.title('Распределение ошибок по приоритетам')
 plt.show()
+
+data['Дата'] = pd.to_datetime(data['Дата'])
+errors = data.groupby(data['Дата'].dt.to_period('M'))['Дата'].count()
+plt.figure(figsize=(5,3))
+errors.plot()
+plt.xlabel('Период')
+plt.ylabel('Количество ошибок')
+plt.title('Распределение ошибок по времени')
+plt.show()
+
